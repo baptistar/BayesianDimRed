@@ -1,3 +1,6 @@
+clear; close all; clc
+addpath('../tools')
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Creation of the wrench %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -40,7 +43,7 @@ wrench.plotSol(logE)
 type = 3;
 
 logE = wrench.logE();
-[y,g,XObs,L] = wrench.evalObs(logE,type);
+[y,g,XObs,~] = wrench.evalObs(logE,type);
 
 
 % disp('Quantity of Interest')
@@ -74,7 +77,6 @@ for k=1:K
     [y,g] = wrench.evalObs(logE,type);
     data(:,k) = y;
     xy(:,:,k) = logE .* y.';
-%     H = H + g'*g;
     Hx = Hx + g'*RY*g;
     Hy = Hy + g*wrench.Sigma*g.';
 end
@@ -114,9 +116,6 @@ C_yy = Uy.'*C_yy*Uy;
 
 %% Compute the *informed* directions
 
-%[UU,DD] = svd( wrench.Sigma12'*Hx*wrench.Sigma12);
-%DD = diag(DD);
-
 % compute basis for wrench.Sigma
 [Ux_basis,Dx_basis] = svd(wrench.Sigma);
 dim = size(wrench.Sigma12,2);
@@ -129,16 +128,12 @@ Hx_inner = (Dx_basis.'*Ux_basis.'*Hx*Ux_basis*Dx_basis);
 [UU,DD] = svd( Hx_inner);
 DD = diag(DD);
 
-% compute upper bound
+% evaluate upper bounds
 UB_CMI = zeros(length(DD), 1);
 for i=1:length(DD)
     UB_CMI(i) = sum(DD(i+1:end));
 end
-% compute bound explicitly 
-UB_CMI2 = zeros(length(DD),1);
-for i=1:length(DD)
-    UB_CMI2(i) = trace(UU(:,i+1:end).' * Hx_inner * UU(:,i+1:end));
-end
+
 UB_CCA = zeros(size(Ux_cca,2), 1);
 for i=1:size(Ux_cca,2)
     % multiply CCA vectors by Cpr^{T/2} = (Dx_basis * Ux_basis.')
@@ -148,6 +143,7 @@ for i=1:size(Ux_cca,2)
     Uxorth_cca = Uxorth_cca(:,i+1:end);
     UB_CCA(i) = trace(Uxorth_cca.'* Hx_inner * Uxorth_cca);
 end
+
 UB_PCA = zeros(size(Ux_pca,2), 1);
 for i=1:size(Ux_pca,2)
     % move vectors to original space
@@ -161,7 +157,6 @@ end
 figure()
 hold on
 semilogy(UB_CMI,'LineWidth',3)
-%semilogy(UB_CMI2,'--')
 semilogy(UB_PCA,'LineWidth',3)
 semilogy(UB_CCA,'LineWidth',3)
 set(gca,'YScale','log')

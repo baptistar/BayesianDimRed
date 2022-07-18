@@ -52,8 +52,8 @@ classdef Wrench
             % parameter of the covariance function
             %  (x,y) ->  sigma^alpha * exp[ -( ||x-y||_2/l0 )^2 ]
             alpha = 2;
-            sigma = 1;
-            l0 = 1.0;
+            sigma = 3;%1;
+            l0 = 0.5;%1.0;
             wrench = initYoungsModulusField(wrench,alpha,sigma,l0);
             
             if flag_deltaA == 1 

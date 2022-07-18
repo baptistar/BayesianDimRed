@@ -5,7 +5,13 @@ linear_joint_paper
 cd ..
 
 cd WrenchMark
+plot_solutions
+compute_subspaces
+cd ..
 
+cd WrenchMark_ATM
+build_adaptive_maps
+evaluate_negativeloglikelihood
 cd ..
 
 cd Imaging

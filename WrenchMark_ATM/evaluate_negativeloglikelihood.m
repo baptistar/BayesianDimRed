@@ -1,6 +1,12 @@
 clear; close all; clc
 sd = 10; rng(sd);
-addpath(genpath('~/Documents/MATLAB/AdaptiveTransportMaps/src'))
+
+% check for ATM code and add to path
+ATMdir = '/path/to/ATM/sr'
+if ~exist(ATMdir, 'dir')
+    error('Install ATM code from: https://github.com/baptistar/ATM')
+end
+addpath(genpath(ATMdir))
 
 %% Define parameters
 
@@ -49,28 +55,20 @@ model.Cprm12  = wrench.Sigma12*diag(1./diag(wrench.Sigma12'*wrench.Sigma12));
 %% Draw joint samples
 
 % set number of samples
-% n_samples = 1e6;
-% 
-% x_st = zeros(n_samples, model.d);
-% y_st = zeros(n_samples, model.m(1));
-%     
-% for i=1:n_samples
-%     disp(i)
-%     % define true sample
-%     logE = wrench.logE();
-%     y = wrench.evalObs(logE, model.type);
-%     y = y + model.Cobs12*randn(size(y,1),1);
-%     % save sample
-%     x_st(i,:) = logE;
-%     y_st(i,:) = y;
-% end
-% 
-% save('samples','x_st','y_st','-v7.3')
+n_samples = 1e6;
 
-load('samples','x_st','y_st')
-x_st = x_st(1:500000,:);
-y_st = y_st(1:500000,:);
-n_samples = size(x_st,1)
+x_st = zeros(n_samples, model.d);
+y_st = zeros(n_samples, model.m(1));
+    
+for i=1:n_samples
+    % draw sample
+    logE = wrench.logE();
+    y = wrench.evalObs(logE, model.type);
+    y = y + model.Cobs12*randn(size(y,1),1);
+    % save sample
+    x_st(i,:) = logE;
+    y_st(i,:) = y;
+end
 
 %% Load adaptive maps
 

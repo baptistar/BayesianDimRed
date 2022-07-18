@@ -98,6 +98,7 @@ for i=1:6
     caxis([-clim,clim])
     print('-depsc',['eigen_mode' num2str(i) '_CMI_xoff'])
 end
+close all
 
 % for yoff
 HY = zeros(Nim^2,Nim^2);
@@ -119,6 +120,7 @@ for i=1:6
     caxis([-clim,clim])
     print('-depsc',['eigen_mode' num2str(i) '_CMI_yoff'])
 end
+close all
 
 % for gamma
 HY = zeros(Nim^2,Nim^2);

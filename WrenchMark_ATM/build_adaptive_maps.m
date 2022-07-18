@@ -1,6 +1,12 @@
 clear; close all; clc
 sd = 10; rng(sd);
-addpath(genpath('~/Documents/MATLAB/AdaptiveTransportMaps/src'))
+
+% check for ATM code and add to path
+ATMdir = '/path/to/ATM/sr'
+if ~exist(ATMdir, 'dir')
+    error('Install ATM code from: https://github.com/baptistar/ATM')
+end
+addpath(genpath(ATMdir))
 
 %% Define parameters
 
