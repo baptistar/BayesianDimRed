@@ -1,8 +1,9 @@
 clear; close all; clc
 sd = 10; rng(sd);
+addpath('../Wrenchmark')
 
 % check for ATM code and add to path
-ATMdir = '/path/to/ATM/sr'
+ATMdir = '/path/to/ATM/';
 if ~exist(ATMdir, 'dir')
     error('Install ATM code from: https://github.com/baptistar/ATM')
 end
@@ -216,7 +217,7 @@ function [PB, G] = construct_map(Xtrain, Ytrain, Xvalid, Yvalid, Ur, Vs)
     end
 
     % define reference
-    ref = IndependentProductDitribution(repmat({Normal()},1,dx+dy));
+    ref = IndependentProductDistribution(repmat({Normal()},1,dx+dy));
 
     % define map
     S = identity_map(1:(dy+dx), basis);
@@ -237,8 +238,11 @@ function PB = cross_validate_map(PB, ref, Ztrain, Zvalid, comp_idx)
         fprintf('Optimizing component %d\n',k)
         % run greedy approximation on S_valid
         Sk_valid = PB.S.S{k};
+        % define inputs
+        ZWtrain.X = Ztrain(:,1:k); ZWtrain.W = ones(size(Ztrain,1),1)/size(Ztrain,1);
+        ZWvalid.X = Zvalid(:,1:k); ZWvalid.W = ones(size(Zvalid,1),1)/size(Zvalid,1);
         [Sk_valid, output] = greedy_fit(Sk_valid, ref.factors{k}, max_terms, ...
-                            Ztrain(:,1:k), Zvalid(:,1:k), max_patience);
+                            ZWtrain, ZWvalid, max_patience);
         % find optimal number of terms (adding terms originally in S)
         % remove one to account for initial condition
         [~, n_added_terms] = min(output.valid_err);
@@ -251,7 +255,7 @@ function PB = cross_validate_map(PB, ref, Ztrain, Zvalid, comp_idx)
         PB.S.S{k} = PB.S.S{k}.set_multi_idxs(midx_opt);
         % run greedy_fit up to opt_terms with all data
         a0 = zeros(opt_terms,1);
-        PB.S.S{k} = optimize_component(PB.S.S{k}, ref.factors{k}, a0, Ztrain(:,1:k), []);
+        PB.S.S{k} = optimize_component(PB.S.S{k}, ref.factors{k}, a0, ZWtrain, []);
     end
 end
 
@@ -260,7 +264,8 @@ function nll = compute_testerr(PB, G, X, Y, Ur, Vs)
     Z = G.S.evaluate(Z);
     nll = 0;
     for k = (size(Vs,2) + 1) : (size(Vs,2) + size(Ur,2))
-         nll = nll + negative_log_likelihood(PB.S.S{k}, Normal(), Z(:,1:k));
+        ZW.X = Z(:,1:k); ZW.W = ones(size(Z,1),1)/size(Z,1);
+        nll = nll + negative_log_likelihood(PB.S.S{k}, Normal(), ZW);
     end
 end
 
